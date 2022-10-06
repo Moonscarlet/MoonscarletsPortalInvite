@@ -1,0 +1,7 @@
+## Interface: 11302
+## Title: MoonscarletsPortalInvite
+## Version: 1.0.0
+## Notes: This is a chat scanner that gives you a notification and a confirmation if you want to invite a player to make a portal for when the words you add to the watch list are mentioned. You can add exact words, complete sentences or multiple separate words to find.
+## Author:Moonscarlet
+## SavedVariables: whitelistedStringTablePortals, whitelistedStringTablePlayers
+MoonscarletsPortalInvite.lua
