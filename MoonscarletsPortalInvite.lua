@@ -1,18 +1,19 @@
 local enabled = true
+local messageCheckDuplicate
 local frame = CreateFrame("FRAME")
 frame:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 frame:RegisterEvent("PLAYER_LOGOUT"); -- Fired when user is logging out
- 
+
 function frame:OnEvent(event)
     if event == "ADDON_LOADED" then
         --print("Addon loaded")
-    elseif event == "PLAYER_LOGOUT" then
-         print("Player is logging out")
-    end
+		elseif event == "PLAYER_LOGOUT" then
+		print("Player is logging out")
+	end
 end
 
 frame:SetScript("OnEvent", frame.OnEvent);
- 
+
 commands =
 {
     ["help"] = function()
@@ -47,41 +48,41 @@ commands =
         print(" ")
         print("/PI help")
         print("Description : Prints help")
-    end,
- 
+	end,
+	
     ["add"] = function(textstr)
         if whitelistedStringTablePortals == nil then
             print("--")
             print("No string table detected, creating a new, empty one")
             whitelistedStringTablePortals = {nil}
-        end
+		end
 		textstr= textstr:gsub("_", " ")
         table.insert(whitelistedStringTablePortals, textstr)
-    end,
- 
+	end,
+	
     ["del"] = function(key)
 		print("--")
 		print("Removed "..key)    
 		table.remove(whitelistedStringTablePortals, key)
-    end,
+	end,
 	
     ["clear"] = function()
         wipe(whitelistedStringTablePortals)
         print("--")
         print("Wiped")
-    end,
- 
-     ["enable"] = function()
+	end,
+	
+	["enable"] = function()
 		enabled= true
         print("--")
         print("Enabled")
-    end,
-
-     ["disable"] = function()
+	end,
+	
+	["disable"] = function()
 		enabled= false
         print("--")
         print("Disabled")
-    end,
+	end,
 	
     ["list"] = function()
 		print("--")
@@ -89,61 +90,61 @@ commands =
 		print(enabled)
         print("Watchlist:")
         if (whitelistedStringTablePortals == nil) then
-             print("Watchlist is empty")
-			 return
-        end
- 
+			print("Watchlist is empty")
+			return
+		end
+		
         for i,v in ipairs(whitelistedStringTablePortals) do
             print(i,v)
-        end
-    end,
-
+		end
+	end,
+	
     ["addplayer"] = function(textstr)
         if whitelistedStringTablePlayers == nil then
             print("--")
             print("No string table detected, creating a new, empty one")
             whitelistedStringTablePlayers = {}
 			table.insert(whitelistedStringTablePlayers, "")
-        end
+		end
         table.insert(whitelistedStringTablePlayers, textstr)
-    end,
- 
+	end,
+	
     ["delplayer"] = function(key)
 		print("--")
 		print("Removed "..key)    
 		table.remove(whitelistedStringTablePlayers, key)
-    end,
+	end,
 	
 	["players"] = function()
         print("Ignored players:")
         if (whitelistedStringTablePlayers == nil) then
-             print("Ignore list is empty")
-			 return
-        end
- 
+			print("Ignore list is empty")
+			return
+		end
+		
         for i,v in ipairs(whitelistedStringTablePlayers) do
             print(i,v)
-        end
-    end
+		end
+	end
 }
- 
- 
+
+
 function HandleSlashCommands(str)  
     if (#str == 0) then
         print("Command not recognized, showing help")
         commands.help()
         return;    
-    end
-   
+	end
+	
     local args = {};
     for _, arg in ipairs({ string.split(' ', str) }) do
         if (#arg > 0) then
             table.insert(args, arg);
-        end
-    end
-   
+		end
+	end
+	
     local path = commands;
-   
+	
     for id, arg in ipairs(args) do
         if (#arg > 0) then
             arg = arg:lower();         
@@ -151,23 +152,23 @@ function HandleSlashCommands(str)
                 if (type(path[arg]) == "function") then            
                     path[arg](select(id + 1, unpack(args)));
                     return;                
-                elseif (type(path[arg]) == "table") then               
+					elseif (type(path[arg]) == "table") then               
                     path = path[arg];
-                end
-            else
+				end
+				else
                 print("--")
                 print("Not a Portal Invite command")
                 print("Arguement numcount : " , #arg)
                 print("Arguement : " , arg)
                 return;
-            end
-        end
-    end
+			end
+		end
+	end
 end
- 
+
 SLASH_PI1 = "/PI"
 SlashCmdList.PI = HandleSlashCommands
- 
+
 local chatFrame = CreateFrame("FRAME")
 
 -- chatFrame:RegisterEvent("CHAT_MSG_GUILD")
@@ -177,7 +178,7 @@ local chatFrame = CreateFrame("FRAME")
 -- chatFrame:RegisterEvent("CHAT_MSG_PARTY")
 -- chatFrame:RegisterEvent("CHAT_MSG_RAID_LEADER")
 -- chatFrame:RegisterEvent("CHAT_MSG_RAID")
--- chatFrame:RegisterEvent("CHAT_MSG_WHISPER")
+chatFrame:RegisterEvent("CHAT_MSG_WHISPER")
 -- chatFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
 chatFrame:RegisterEvent("CHAT_MSG_CHANNEL")
 chatFrame:RegisterEvent("CHAT_MSG_SAY")
@@ -189,29 +190,34 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 	local myName,_ = UnitName("player") -- Get my name
 	local chanNumberOnly = string.sub(chanNumber, 1, 1) -- get channel number
 	local myClass, _, _ = UnitClass("player");
+	local location = PlayerLocation:CreateFromGUID(guid)
 	------------------CLASS COLORS
 	local classColor
 	if 	   class=="Druid" then classColor= "FF7D0A" 
-	elseif class=="Hunter" then classColor= "ABD473"
-	elseif class=="Mage" then classColor= "69CCF0"
-	elseif class=="Paladin" then classColor= "F58CBA"
-	elseif class=="Priest" then classColor= "FFFFFF"
-	elseif class=="Rogue" then classColor= "FFF569"
-	elseif class=="Shaman" then classColor= "0070DE"
-	elseif class=="Warlock" then classColor= "9482C9"
-	elseif class=="Warrior" then classColor= "C79C6E"
+		elseif class=="Hunter" then classColor= "ABD473"
+		elseif class=="Mage" then classColor= "69CCF0"
+		elseif class=="Paladin" then classColor= "F58CBA"
+		elseif class=="Priest" then classColor= "FFFFFF"
+		elseif class=="Rogue" then classColor= "FFF569"
+		elseif class=="Shaman" then classColor= "0070DE"
+		elseif class=="Warlock" then classColor= "9482C9"
+		elseif class=="Warrior" then classColor= "C79C6E"
+		elseif class=="Death Knight" then classColor= "C41E3A"
+		elseif class=="Demon Hunter" then classColor= "A330C9"
 	end
 	-------------------------
 	
-	if enabled and player~= myName and myClass== "Mage" and class ~= "Mage" and ((chanNumberOnly== "1" and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then 
-	--not me & not a mage & general chat or others 
-	-- if enabled then
+	-- if enabled and player~= myName and myClass== "Mage" and class ~= "Mage" and ((chanNumberOnly== "1" and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then 
+	-- if enabled and player~= myName and myClass== "Mage" then --all channels
+	if enabled and myClass== "Mage" and (((chanNumberOnly== "1" or chanNumberOnly== "2") and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then --testing (including me)
+		--not me & not a mage & general chat or others 
+		-- if enabled then
 		for _, z in ipairs(whitelistedStringTablePlayers) do --if player is found in blacklist > return
 			if player:lower() == z:lower() then 
 				return 
 			end
 		end
-			
+		
 		for _, v in ipairs(whitelistedStringTablePortals) do
 			local checkFound = true
 			for w in string.gmatch(v:lower(), "([^\|]+)") do
@@ -222,6 +228,12 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 			end
 			
 			if checkFound then
+				if messageCheckDuplicate == message then --if same as previous message return
+					return
+				else
+					messageCheckDuplicate = message
+				end
+	
 				playerLink= "|Hplayer:"..sender.."|h"..chanName.."|h" --GetPlayerLink(characterName,linkDisplayText)
 				playerLink=  "|cff"..classColor.."["..playerLink.."]|r"-- Adding class color
 				msg= "|cAAFF0000PORTAL(|r|cff92ff58"..v:upper().."|r|cffFF0000): |r|cff5892ff["..chanNumber.."]|r "..playerLink.."|cff5892ff: "..message.."|r"
@@ -245,7 +257,7 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 				-- DEFAULT_CHAT_FRAME:AddMessage("x12: "..x12);
 				-- DEFAULT_CHAT_FRAME:AddMessage("x13: "..x13);
 				-- DEFAULT_CHAT_FRAME:AddMessage("guid: "..guid);
-
+				
 				-----------------------------
 				
 				-- SELECTED_CHAT_FRAME:AddMessage(msg);
@@ -261,18 +273,19 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 				-- PlaySound(1431,"Master")--LOH
 				PlaySound(8474,"Master")--SCREECH
 				
-				 StaticPopupDialogs["INVITEPLAYER"] = {
-				  -- text = "Invite "..player.."?\n\n"..message.."\n",
-				  text = "Invite ".."|cff"..classColor..player.."|r".."?\n\n"..message.."\n",
-				  button1 = "Yes",
-				  button2 = "No",
-				  OnAccept = function() --on Yes
-					  InviteUnit(sender);
-				  end,
-				  timeout = 20,
-				  whileDead = true,
-				  hideOnEscape = true,
-				  preferredIndex = 3,
+				StaticPopupDialogs["INVITEPLAYER"] = {
+					-- text = "Invite "..player.."?\n\n"..message.."\n",
+					text = "Invite ".."|cff"..classColor..player.."|r".."?\n\n["..chanNumber.."]\n\n"..message.."\n",
+					-- text = "Invite ".."|cff"..classColor..player.."|r".."? ("..table.concat(location)..")\n\n"..message.."\n",
+					button1 = "Yes",
+					button2 = "No",
+					OnAccept = function() --on Yes
+						InviteUnit(sender);
+					end,
+					timeout = 20,
+					whileDead = true,
+					hideOnEscape = true,
+					preferredIndex = 3,
 				}
 				StaticPopup_Show ("INVITEPLAYER")
 				return--SHOW ONLY IF 1st is FOUND TO AVOID SPAM NOTIFICATIONS
