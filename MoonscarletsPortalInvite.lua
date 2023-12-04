@@ -1,5 +1,7 @@
 local enabled = true
 local messageCheckDuplicate
+local autoinvite = false
+
 local frame = CreateFrame("FRAME")
 frame:RegisterEvent("ADDON_LOADED"); -- Fired when saved variables are loaded
 frame:RegisterEvent("PLAYER_LOGOUT"); -- Fired when user is logging out
@@ -46,6 +48,9 @@ commands =
 		print("/PI disable")
         print("Description : Disables scanning")
         print(" ")
+		print("/PI auto")
+        print("Description : autoinvite")
+        print(" ")
         print("/PI help")
         print("Description : Prints help")
 	end,
@@ -83,11 +88,17 @@ commands =
         print("--")
         print("Disabled")
 	end,
+
+    ["auto"] = function()
+		autoinvite= not autoinvite
+        print("--")
+        print("auto invite: " .. tostring(autoinvite))
+    end,
 	
     ["list"] = function()
 		print("--")
-		print("Enabled:")
-		print(enabled)
+		print("Enabled: " .. tostring(enabled))
+		print("auto invite: " .. tostring(autoinvite))
         print("Watchlist:")
         if (whitelistedStringTablePortals == nil) then
 			print("Watchlist is empty")
@@ -191,6 +202,7 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 	local chanNumberOnly = string.sub(chanNumber, 1, 1) -- get channel number
 	local myClass, _, _ = UnitClass("player");
 	local location = PlayerLocation:CreateFromGUID(guid)
+	-- print(location)
 	------------------CLASS COLORS
 	local classColor
 	if 	   class=="Druid" then classColor= "FF7D0A" 
@@ -209,7 +221,8 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 	
 	-- if enabled and player~= myName and myClass== "Mage" and class ~= "Mage" and ((chanNumberOnly== "1" and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then 
 	-- if enabled and player~= myName and myClass== "Mage" then --all channels
-	if enabled and myClass== "Mage" and (((chanNumberOnly== "1" or chanNumberOnly== "2") and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then --testing (including me)
+	-- if enabled and myClass== "Mage" and (((chanNumberOnly== "1" or chanNumberOnly== "2") and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then --testing (including me)
+	if enabled and myClass== "Mage" and ((chanNumberOnly== "1" and event == "CHAT_MSG_CHANNEL") or event ~= "CHAT_MSG_CHANNEL") then --no trade channel
 		--not me & not a mage & general chat or others 
 		-- if enabled then
 		for _, z in ipairs(whitelistedStringTablePlayers) do --if player is found in blacklist > return
@@ -228,11 +241,11 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 			end
 			
 			if checkFound then
-				if messageCheckDuplicate == message then --if same as previous message return
-					return
-				else
-					messageCheckDuplicate = message
-				end
+				-- if messageCheckDuplicate == message then --if same as previous message return
+					-- return
+				-- else
+					-- messageCheckDuplicate = message
+				-- end
 	
 				playerLink= "|Hplayer:"..sender.."|h"..chanName.."|h" --GetPlayerLink(characterName,linkDisplayText)
 				playerLink=  "|cff"..classColor.."["..playerLink.."]|r"-- Adding class color
@@ -272,6 +285,10 @@ chatFrame:SetScript("OnEvent", function(self,event,message,sender,chanString,cha
 				-- PlaySound(3410,"Master")--ORCA
 				-- PlaySound(1431,"Master")--LOH
 				PlaySound(8474,"Master")--SCREECH
+				
+				if autoinvite then
+					InviteUnit(sender);
+				end
 				
 				StaticPopupDialogs["INVITEPLAYER"] = {
 					-- text = "Invite "..player.."?\n\n"..message.."\n",
